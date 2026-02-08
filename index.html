@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dicky News Unlock</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#0f172a;
+  color:#fff;
+  text-align:center;
+  padding:30px;
+}
+.box{
+  max-width:600px;
+  margin:auto;
+  background:#1e293b;
+  padding:25px;
+  border-radius:12px;
+}
+input{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+#result{
+  margin-top:15px;
+  word-break:break-all;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box" id="app"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const app = document.getElementById("app");
+
+// ================= GENERATOR =================
+if(params.toString() === ""){
+
+app.innerHTML = `
+<h2>Unlock Link Generator</h2>
+
+<input id="ytch" placeholder="Link Channel YouTube Utama">
+<input id="ytch2" placeholder="Link Channel YouTube Kedua">
+<input id="ytvid" placeholder="Link Video YouTube">
+<input id="ig" placeholder="Link Instagram">
+<input id="tt" placeholder="Link TikTok">
+<input id="fb" placeholder="Link Facebook">
+<input id="custom" placeholder="Link File / Tujuan Unlock">
+
+<button onclick="generate()">Buat Link Unlock</button>
+
+<div id="result"></div>
+`;
+
+window.generate = function(){
+  let base = window.location.href;
+  let arr = [];
+  ["ytch","ytch2","ytvid","ig","tt","fb","custom"].forEach(id=>{
+    let v = document.getElementById(id).value.trim();
+    if(v) arr.push(id+"="+encodeURIComponent(v));
+  });
+  let link = base + "?" + arr.join("&");
+  document.getElementById("result").innerHTML =
+    "<p>Link Unlock:</p><a href='"+link+"' target='_blank'>"+link+"</a>";
+};
+
+}
+
+// ================= UNLOCK =================
+else{
+
+app.innerHTML = "<h3>Ikuti langkah di bawah agar link terbuka 👇</h3>";
+
+let total = 0;
+let clicked = 0;
+
+function addBtn(text, link){
+  let b = document.createElement("button");
+  b.innerText = text;
+  b.onclick = function(){
+    window.open(link, "_blank");
+    b.disabled = true;
+    clicked++;
+    if(clicked >= total) showOpen();
+  };
+  app.appendChild(b);
+  total++;
+}
+
+function showOpen(){
+  let o = document.createElement("button");
+  o.innerText = "Buka Link";
+  o.style.background = "#22c55e";
+  o.onclick = function(){
+    window.location.href = params.get("custom");
+  };
+  app.appendChild(o);
+}
+
+if(params.get("ytch")) addBtn("Subscribe YouTube Channel Utama", params.get("ytch"));
+if(params.get("ytch2")) addBtn("Subscribe YouTube Channel Kedua", params.get("ytch2"));
+if(params.get("ytvid")) addBtn("Like / Comment YouTube Video", params.get("ytvid"));
+if(params.get("ig")) addBtn("Follow Instagram", params.get("ig"));
+if(params.get("tt")) addBtn("Follow TikTok", params.get("tt"));
+if(params.get("fb")) addBtn("Follow Facebook", params.get("fb"));
+
+}
+</script>
+
+</body>
+</html>
