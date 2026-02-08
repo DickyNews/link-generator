@@ -35,6 +35,25 @@ button{
   border-radius:8px;
   font-size:16px;
   cursor:pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+/* Tombol tugas yang belum diklik */
+.btn-task {
+  background: #4a5568;
+  color: white;
+}
+/* Tombol tugas yang sudah diklik */
+.btn-done {
+  background: #1e293b !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+  border: 1px solid #4a5568;
+}
+/* Tombol utama (Generator & Unlock Akhir) */
+.btn-primary {
+  background: #fff;
+  color: #0f172a;
 }
 #result{
   margin-top:15px;
@@ -51,12 +70,12 @@ button{
 const params = new URLSearchParams(window.location.search);
 const app = document.getElementById("app");
 
-// ================= GENERATOR =================
-if(params.toString() === ""){
+// ================= MODE 1: GENERATOR =================
+// (Muncul jika link dibuka tanpa parameter tambahan)
+if(params.toString() === "" || !params.get("custom")){
 
 app.innerHTML = `
 <h2>Unlock Link Generator</h2>
-
 <input id="ytch" placeholder="Link Channel YouTube Utama">
 <input id="ytch2" placeholder="Link Channel YouTube Kedua">
 <input id="ytvid" placeholder="Link Video YouTube">
@@ -65,62 +84,87 @@ app.innerHTML = `
 <input id="fb" placeholder="Link Facebook">
 <input id="custom" placeholder="Link File / Tujuan Unlock">
 
-<button onclick="generate()">Buat Link Unlock</button>
-
+<button class="btn-primary" onclick="generate()">Buat Link Unlock</button>
 <div id="result"></div>
 `;
 
 window.generate = function(){
-  let base = window.location.href;
+  let base = window.location.origin + window.location.pathname;
   let arr = [];
   ["ytch","ytch2","ytvid","ig","tt","fb","custom"].forEach(id=>{
     let v = document.getElementById(id).value.trim();
     if(v) arr.push(id+"="+encodeURIComponent(v));
   });
+  
+  if(!document.getElementById("custom").value.trim()){
+      alert("Link Tujuan Unlock wajib diisi!");
+      return;
+  }
+
   let link = base + "?" + arr.join("&");
   document.getElementById("result").innerHTML =
-    "<p>Link Unlock:</p><a href='"+link+"' target='_blank'>"+link+"</a>";
+    "<p>Salin & Bagikan Link Ini:</p><input readonly value='"+link+"' onclick='this.select()' style='cursor:pointer; text-align:center;'>";
 };
 
 }
 
-// ================= UNLOCK =================
-else{
+// ================= MODE 2: UNLOCK =================
+// (Muncul jika ada link target 'custom')
+else {
 
-app.innerHTML = "<h3>Ikuti langkah di bawah agar link terbuka 👇</h3>";
+app.innerHTML = "<h3>Selesaikan langkah di bawah untuk membuka link 👇</h3><div id='task-list'></div><div id='unlock-area'></div>";
 
-let total = 0;
-let clicked = 0;
+let totalTasks = 0;
+let completedTasks = 0;
+const taskList = document.getElementById('task-list');
 
 function addBtn(text, link){
+  totalTasks++;
   let b = document.createElement("button");
   b.innerText = text;
+  b.className = "btn-task";
+  
   b.onclick = function(){
     window.open(link, "_blank");
-    b.disabled = true;
-    clicked++;
-    if(clicked >= total) showOpen();
+    
+    // Validasi: Beri jeda sebentar sebelum tombol dianggap selesai
+    if(!b.classList.contains("btn-done")){
+        b.classList.add("btn-done");
+        b.innerText = "✅ " + text;
+        completedTasks++;
+        
+        // Jika semua tugas sudah diklik, munculkan tombol buka link
+        if(completedTasks >= totalTasks) showOpenButton();
+    }
   };
-  app.appendChild(b);
-  total++;
+  taskList.appendChild(b);
 }
 
-function showOpen(){
+function showOpenButton(){
+  const area = document.getElementById('unlock-area');
+  area.innerHTML = ""; // Bersihkan jika ada
   let o = document.createElement("button");
-  o.innerText = "Buka Link";
+  o.innerText = "BUKA LINK TUJUAN";
+  o.className = "btn-primary";
+  o.style.marginTop = "20px";
   o.style.background = "#22c55e";
+  o.style.color = "white";
   o.onclick = function(){
     window.location.href = params.get("custom");
   };
-  app.appendChild(o);
+  area.appendChild(o);
 }
 
-if(params.get("ytch")) addBtn("Subscribe YouTube Channel Utama", params.get("ytch"));
-if(params.get("ytch2")) addBtn("Subscribe YouTube Channel Kedua", params.get("ytch2"));
-if(params.get("ytvid")) addBtn("Like / Comment YouTube Video", params.get("ytvid"));
+// Cek parameter dan tambahkan tombol tugas secara otomatis
+if(params.get("ytch")) addBtn("Subscribe YouTube Utama", params.get("ytch"));
+if(params.get("ytch2")) addBtn("Subscribe YouTube Kedua", params.get("ytch2"));
+if(params.get("ytvid")) addBtn("Like & Comment Video", params.get("ytvid"));
 if(params.get("ig")) addBtn("Follow Instagram", params.get("ig"));
 if(params.get("tt")) addBtn("Follow TikTok", params.get("tt"));
 if(params.get("fb")) addBtn("Follow Facebook", params.get("fb"));
+
+// Jika tidak ada tugas sama sekali tapi ada link tujuan (kasus jarang)
+if(totalTasks === 0) showOpenButton();
 
 }
 </script>
